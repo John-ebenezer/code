@@ -1,0 +1,563 @@
+DATA STRUCTURES EXPERIMENTS – MAIN PROGRAM CODES
+(Post-lab question codes are excluded.)
+
+============================================================
+EXPERIMENT 9: BINARY SEARCH TREE (BST) – INSERTION
+============================================================
+
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node *left;
+    struct Node *right;
+};
+
+/* Create a new node */
+struct Node *createNode(int value) {
+    struct Node *newNode = (struct Node *)malloc(sizeof(struct Node));
+    if (newNode == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
+    newNode->data = value;
+    newNode->left = NULL;
+    newNode->right = NULL;
+    return newNode;
+}
+
+/* Insert a value into the BST; duplicates are ignored */
+struct Node *insert(struct Node *root, int value) {
+    if (root == NULL)
+        return createNode(value);
+
+    if (value < root->data)
+        root->left = insert(root->left, value);
+    else if (value > root->data)
+        root->right = insert(root->right, value);
+    else
+        printf("Duplicate value %d ignored.\n", value);
+
+    return root;
+}
+
+/* Inorder traversal: Left, Root, Right */
+void inorder(struct Node *root) {
+    if (root != NULL) {
+        inorder(root->left);
+        printf("%d ", root->data);
+        inorder(root->right);
+    }
+}
+
+void freeTree(struct Node *root) {
+    if (root != NULL) {
+        freeTree(root->left);
+        freeTree(root->right);
+        free(root);
+    }
+}
+
+int main(void) {
+    struct Node *root = NULL;
+    int n, i, value;
+    int *inputs;
+
+    printf("Enter the number of elements: ");
+    if (scanf("%d", &n) != 1 || n <= 0) {
+        printf("Invalid number of elements.\n");
+        return 1;
+    }
+
+    inputs = (int *)malloc(n * sizeof(int));
+    if (inputs == NULL) {
+        printf("Memory allocation failed.\n");
+        return 1;
+    }
+
+    printf("Enter %d elements:\n", n);
+    for (i = 0; i < n; i++) {
+        if (scanf("%d", &value) != 1) {
+            printf("Invalid input.\n");
+            free(inputs);
+            freeTree(root);
+            return 1;
+        }
+        inputs[i] = value;
+        root = insert(root, value);
+    }
+
+    printf("\nElements inserted into the BST (in order of insertion):\n");
+    for (i = 0; i < n; i++)
+        printf("%d ", inputs[i]);
+
+    printf("\nInorder traversal of the constructed BST:\n");
+    inorder(root);
+    printf("\n");
+
+    free(inputs);
+    freeTree(root);
+    return 0;
+}
+
+
+============================================================
+EXPERIMENT 10: DELETION IN BINARY SEARCH TREE
+============================================================
+
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node *left;
+    struct Node *right;
+};
+
+/* Create a new node */
+struct Node *createNode(int value) {
+    struct Node *newNode = (struct Node *)malloc(sizeof(struct Node));
+    if (newNode == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
+    newNode->data = value;
+    newNode->left = NULL;
+    newNode->right = NULL;
+    return newNode;
+}
+
+/* Insert a node into the BST */
+struct Node *insert(struct Node *root, int value) {
+    if (root == NULL)
+        return createNode(value);
+
+    if (value < root->data)
+        root->left = insert(root->left, value);
+    else if (value > root->data)
+        root->right = insert(root->right, value);
+
+    return root;
+}
+
+/* Find the minimum-valued node */
+struct Node *findMin(struct Node *root) {
+    struct Node *current = root;
+    while (current != NULL && current->left != NULL)
+        current = current->left;
+    return current;
+}
+
+/* Delete a node from the BST */
+struct Node *deleteNode(struct Node *root, int key) {
+    if (root == NULL)
+        return root;
+
+    if (key < root->data) {
+        root->left = deleteNode(root->left, key);
+    } else if (key > root->data) {
+        root->right = deleteNode(root->right, key);
+    } else {
+        /* Case 1 and Case 2: zero or one child */
+        if (root->left == NULL) {
+            struct Node *temp = root->right;
+            free(root);
+            return temp;
+        } else if (root->right == NULL) {
+            struct Node *temp = root->left;
+            free(root);
+            return temp;
+        }
+
+        /* Case 3: two children */
+        struct Node *temp = findMin(root->right);
+        root->data = temp->data;
+        root->right = deleteNode(root->right, temp->data);
+    }
+    return root;
+}
+
+/* Inorder traversal */
+void inorder(struct Node *root) {
+    if (root != NULL) {
+        inorder(root->left);
+        printf("%d ", root->data);
+        inorder(root->right);
+    }
+}
+
+void freeTree(struct Node *root) {
+    if (root != NULL) {
+        freeTree(root->left);
+        freeTree(root->right);
+        free(root);
+    }
+}
+
+int main(void) {
+    struct Node *root = NULL;
+    int n, value, key;
+
+    printf("Enter number of elements: ");
+    if (scanf("%d", &n) != 1 || n <= 0) {
+        printf("Invalid number of elements.\n");
+        return 1;
+    }
+
+    printf("Enter the elements:\n");
+    for (int i = 0; i < n; i++) {
+        if (scanf("%d", &value) != 1) {
+            printf("Invalid input.\n");
+            freeTree(root);
+            return 1;
+        }
+        root = insert(root, value);
+    }
+
+    printf("\nBST before deletion (Inorder): ");
+    inorder(root);
+
+    printf("\nEnter the element to delete: ");
+    if (scanf("%d", &key) != 1) {
+        printf("Invalid input.\n");
+        freeTree(root);
+        return 1;
+    }
+
+    root = deleteNode(root, key);
+    printf("\nBST after deletion (Inorder): ");
+    inorder(root);
+    printf("\n");
+
+    freeTree(root);
+    return 0;
+}
+
+
+============================================================
+EXPERIMENT 11: BST TRAVERSALS USING RECURSION
+============================================================
+
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node *left;
+    struct Node *right;
+};
+
+struct Node *createNode(int value) {
+    struct Node *newNode = (struct Node *)malloc(sizeof(struct Node));
+    if (newNode == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
+    newNode->data = value;
+    newNode->left = NULL;
+    newNode->right = NULL;
+    return newNode;
+}
+
+struct Node *insert(struct Node *root, int value) {
+    if (root == NULL)
+        return createNode(value);
+
+    if (value < root->data)
+        root->left = insert(root->left, value);
+    else if (value > root->data)
+        root->right = insert(root->right, value);
+    else
+        printf("Duplicate value ignored.\n");
+
+    return root;
+}
+
+void preorder(struct Node *root) {
+    if (root == NULL)
+        return;
+    printf("%d ", root->data);
+    preorder(root->left);
+    preorder(root->right);
+}
+
+void inorder(struct Node *root) {
+    if (root == NULL)
+        return;
+    inorder(root->left);
+    printf("%d ", root->data);
+    inorder(root->right);
+}
+
+void postorder(struct Node *root) {
+    if (root == NULL)
+        return;
+    postorder(root->left);
+    postorder(root->right);
+    printf("%d ", root->data);
+}
+
+void freeTree(struct Node *root) {
+    if (root != NULL) {
+        freeTree(root->left);
+        freeTree(root->right);
+        free(root);
+    }
+}
+
+int main(void) {
+    struct Node *root = NULL;
+    int n, i, value;
+
+    printf("Enter the number of elements: ");
+    if (scanf("%d", &n) != 1 || n <= 0) {
+        printf("Invalid number of elements.\n");
+        return 1;
+    }
+
+    printf("Enter elements:\n");
+    for (i = 0; i < n; i++) {
+        if (scanf("%d", &value) != 1) {
+            printf("Invalid input.\n");
+            freeTree(root);
+            return 1;
+        }
+        root = insert(root, value);
+    }
+
+    printf("\nPreorder Traversal: ");
+    preorder(root);
+    printf("\nInorder Traversal: ");
+    inorder(root);
+    printf("\nPostorder Traversal: ");
+    postorder(root);
+    printf("\n");
+
+    freeTree(root);
+    return 0;
+}
+
+
+============================================================
+EXPERIMENT 12: HEAP CREATION, INSERTION AND DELETION (MAX HEAP)
+============================================================
+
+#include <stdio.h>
+#define MAX 100
+
+int heap[MAX], size = 0;
+
+void insert(int value) {
+    int i = size++;
+    heap[i] = value;
+
+    while (i > 0 && heap[(i - 1) / 2] < heap[i]) {
+        int temp = heap[i];
+        heap[i] = heap[(i - 1) / 2];
+        heap[(i - 1) / 2] = temp;
+        i = (i - 1) / 2;
+    }
+}
+
+void deleteRoot(void) {
+    if (size == 0) {
+        printf("Heap is empty.\n");
+        return;
+    }
+
+    printf("Deleted element: %d\n", heap[0]);
+    heap[0] = heap[--size];
+
+    int i = 0;
+    while (1) {
+        int largest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+
+        if (left < size && heap[left] > heap[largest])
+            largest = left;
+        if (right < size && heap[right] > heap[largest])
+            largest = right;
+        if (largest == i)
+            break;
+
+        int temp = heap[i];
+        heap[i] = heap[largest];
+        heap[largest] = temp;
+        i = largest;
+    }
+}
+
+void display(void) {
+    for (int i = 0; i < size; i++)
+        printf("%d ", heap[i]);
+    printf("\n");
+}
+
+int main(void) {
+    int choice, value;
+    do {
+        printf("\n1. Insert\n2. Delete\n3. Display\n4. Exit\n");
+        printf("Enter choice: ");
+        if (scanf("%d", &choice) != 1)
+            break;
+
+        switch (choice) {
+            case 1:
+                if (size == MAX) {
+                    printf("Heap is full.\n");
+                    break;
+                }
+                printf("Enter value: ");
+                scanf("%d", &value);
+                insert(value);
+                break;
+            case 2:
+                deleteRoot();
+                break;
+            case 3:
+                display();
+                break;
+            case 4:
+                printf("Exiting...\n");
+                break;
+            default:
+                printf("Invalid choice.\n");
+        }
+    } while (choice != 4);
+
+    return 0;
+}
+
+
+============================================================
+EXPERIMENT 13: HEAP SORT IN ASCENDING ORDER (MAX HEAP)
+============================================================
+
+#include <stdio.h>
+
+void heapify(int a[], int n, int i) {
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+
+    if (left < n && a[left] > a[largest])
+        largest = left;
+    if (right < n && a[right] > a[largest])
+        largest = right;
+
+    if (largest != i) {
+        int temp = a[i];
+        a[i] = a[largest];
+        a[largest] = temp;
+        heapify(a, n, largest);
+    }
+}
+
+void heapSort(int a[], int n) {
+    int i, temp;
+
+    for (i = n / 2 - 1; i >= 0; i--)
+        heapify(a, n, i);
+
+    for (i = n - 1; i > 0; i--) {
+        temp = a[0];
+        a[0] = a[i];
+        a[i] = temp;
+        heapify(a, i, 0);
+    }
+}
+
+int main(void) {
+    int n, i;
+
+    printf("Enter number of elements: ");
+    if (scanf("%d", &n) != 1 || n <= 0) {
+        printf("Invalid number of elements.\n");
+        return 1;
+    }
+
+    int a[n];
+    printf("Enter elements:\n");
+    for (i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+
+    printf("Original array: ");
+    for (i = 0; i < n; i++)
+        printf("%d ", a[i]);
+
+    heapSort(a, n);
+
+    printf("\nSorted array: ");
+    for (i = 0; i < n; i++)
+        printf("%d ", a[i]);
+    printf("\n");
+    return 0;
+}
+
+
+============================================================
+EXPERIMENT 13: HEAP SORT IN DESCENDING ORDER (MIN HEAP)
+============================================================
+
+#include <stdio.h>
+
+void heapify(int a[], int n, int i) {
+    int smallest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+
+    if (left < n && a[left] < a[smallest])
+        smallest = left;
+    if (right < n && a[right] < a[smallest])
+        smallest = right;
+
+    if (smallest != i) {
+        int temp = a[i];
+        a[i] = a[smallest];
+        a[smallest] = temp;
+        heapify(a, n, smallest);
+    }
+}
+
+void heapSort(int a[], int n) {
+    int i, temp;
+
+    for (i = n / 2 - 1; i >= 0; i--)
+        heapify(a, n, i);
+
+    for (i = n - 1; i > 0; i--) {
+        temp = a[0];
+        a[0] = a[i];
+        a[i] = temp;
+        heapify(a, i, 0);
+    }
+}
+
+int main(void) {
+    int n, i;
+
+    printf("Enter number of elements: ");
+    if (scanf("%d", &n) != 1 || n <= 0) {
+        printf("Invalid number of elements.\n");
+        return 1;
+    }
+
+    int a[n];
+    printf("Enter elements:\n");
+    for (i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+
+    printf("Original array: ");
+    for (i = 0; i < n; i++)
+        printf("%d ", a[i]);
+
+    heapSort(a, n);
+
+    printf("\nSorted array: ");
+    for (i = 0; i < n; i++)
+        printf("%d ", a[i]);
+    printf("\n");
+    return 0;
+}
